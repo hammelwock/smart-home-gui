@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Sensor.qml</file>
+        <file>SmartItem.qml</file>
+        <file>Room.qml</file>
+        <file>images/radiator.webp</file>
+        <file>SignalLamp.qml</file>
+        <file>Actuator.qml</file>
+        <file>images/autoclave.webp</file>
+    </qresource>
+</RCC>
