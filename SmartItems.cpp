@@ -40,88 +40,50 @@ QStringList Spliter::splitConfig(QString config)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Sensor::Sensor(QString config)
+Sensor::Sensor(const QJsonObject &json)
 {
-    QStringList configList = splitConfig(config);
-    if (configList.count() > 2)
-    {
-        name = configList[0];
-        type = configList[1].toInt();
-        pin = configList[2].toInt();
-        address = configList[3].toInt();
-        measuredQuantity = configList[4];
-    }
-    else
-    {
-        name = "error";
-        type = -1;
-        pin = -1;
-        address = -1;
-        measuredQuantity = "";
-    } 
+    name = json["name"].toString();
+    type = json["actuatorType"].toInt();
+    pin = json["pin"].toInt();
+    address = json["address"].toInt();
+    measuredQuantity = json["unit"].toString();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Actuator::Actuator(QString config)
+Actuator::Actuator(const QJsonObject &json)
 {
-    QStringList configList = splitConfig(config);
-    if (configList.count() > 2)
-    {
-        name = configList[0];
-        type = configList[1].toInt();
-        pin = configList[2].toInt();
-    }
-    else
-    {
-        name = "error";
-        type = -1;
-        pin = -1;
-    }
+    name = json["name"].toString();
+    type = json["actuatorType"].toInt();
+    pin = json["pin"].toInt();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SmartItem::SmartItem(QString config)
+SmartItem::SmartItem(const QJsonObject &json)
 {
-    QStringList configList = splitConfig(config);
+    name = json["name"].toString();
 
-    name = configList[0];
+    QJsonArray sensors = json["sensorList"].toArray();
+    for (const QJsonValue &value : sensors)
+        sensorList.append(new Sensor(value.toObject()));
 
-    for (int i = 1; i < configList.count(); i += 2)
-    {
-        switch (configList[i].toInt())
-        {
-        case ObjectType::ACTUATOR:
-            actuatorList.append(new class Actuator(configList[i + 1]));
-            break;
-        case ObjectType::SENSOR:
-            sensorList.append(new class Sensor(configList[i + 1]));
-            break;
-        }
-    }
+    QJsonArray actuators = json["actuatorList"].toArray();
+    for (const QJsonValue &value : actuators)
+        actuatorList.append(new Actuator(value.toObject()));
 }
 
-Room::Room(QString config)
+Room::Room(const QJsonObject &json)
 {
-    {
-        QStringList configList = splitConfig(config);
+    name = json["name"].toString();
 
-        name = configList[0];
+    QJsonArray smartItems = json["smartItemList"].toArray();
+    for (const QJsonValue &value : smartItems)
+        smartItemList.append(new SmartItem(value.toObject()));
 
-        for (int i = 1; i < configList.count(); i += 2)
-        {
-            switch (configList[i].toInt())
-            {
-            case ObjectType::SMARTITEM:
-                smartItemList.append(new class SmartItem(configList[i + 1]));
-                break;
-            case ObjectType::SENSOR:
-                sensorList.append(new class Sensor(configList[i + 1]));
-                break;
-            }
-        }
-    }
+    QJsonArray sensors = json["sensorList"].toArray();
+    for (const QJsonValue &value : sensors)
+        sensorList.append(new Sensor(value.toObject()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,20 +91,19 @@ Room::Room(QString config)
 Home::Home(QString config)
 {
     {
-        QStringList configList = splitConfig(config);
+        QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
+        QJsonObject root = doc.object();
 
-        for (int i = 0; i < configList.count(); i += 2)
-        {
-            switch (configList[i].toInt())
-            {
-            case ObjectType::ROOM:
-                roomList.append(new class Room(configList[i + 1]));
-                break;
-            case ObjectType::SENSOR:
-                sensorList.append(new class Sensor(configList[i + 1]));
-                break;
-            }
-        }
+        QJsonObject home = root["home"].toObject();
+
+        QJsonArray rooms = home["roomList"].toArray();
+        qDebug() << "rooms содержит:" << rooms;
+        for (const QJsonValue &value : rooms)
+            roomList.append(new Room(value.toObject()));
+
+        QJsonArray sensors = home["sensorList"].toArray();
+        for (const QJsonValue &value : sensors)
+            sensorList.append(new Sensor(value.toObject()));
     }
 }
 

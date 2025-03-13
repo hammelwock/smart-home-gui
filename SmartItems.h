@@ -5,6 +5,10 @@
 #include <QString>
 #include <QList>
 #include <QAbstractListModel>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDebug>
 
 
 class Spliter
@@ -24,7 +28,7 @@ class Sensor : public QObject, protected Spliter
     Q_PROPERTY(QString measuredQuantity READ readMeasuredQuantity() NOTIFY measuredQuantityChanged())
 
 public:
-    Sensor(QString config);
+    Sensor(const QJsonObject &json);
     QString readName(){return name;}
     int readType(){return type;}
     int readPin(){return pin;}
@@ -55,7 +59,7 @@ class Actuator : public QObject, protected Spliter
     Q_PROPERTY(int pin READ readPin() NOTIFY pinChanged())
 
 public:
-    Actuator(QString config);
+    Actuator(const QJsonObject &json);
     QString readName(){return name;}
     int readType(){return type;}
     int readPin(){return pin;}
@@ -80,7 +84,7 @@ class SmartItem : public QObject, protected Spliter
     Q_PROPERTY(QList<QObject*> actuatorList READ readActuatorList() NOTIFY actuatorListChanged())
 
 public:
-    SmartItem(QString config);
+    SmartItem(const QJsonObject &json);
     QString readName(){return name;}
     QList<QObject*> readSensorList(){return sensorList;}
     QList<QObject*> readActuatorList(){return actuatorList;}
@@ -105,7 +109,7 @@ class Room : public QObject, protected Spliter
     Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
-    Room(QString config);
+    Room(const QJsonObject &json);
     QString readName(){return name;}
     QList<QObject*> readSmartItemList(){return smartItemList;}
     QList<QObject*> readSensorList(){return sensorList;}

@@ -1,11 +1,97 @@
 #include "Com.h"
 
-ComPortAdapter::ComPortAdapter() {}
+ComPortAdapter::ComPortAdapter()
+{
+    serial.setPortName();
+    serial.setBaudRate(QSerialPort::Baud9600);
+    serial.setDataBits(QSerialPort::Data8);
+    serial.setParity(QSerialPort::NoParity);
+    serial.setStopBits(QSerialPort::OneStop);
+    serial.setFlowControl(QSerialPort::NoFlowControl);
+
+    QIODevice::connect(&serial, &QSerialPort::readyRead, this, &ComPortAdapter::readData);
+
+    if (serial.open(QIODevice::ReadWrite))
+        qDebug() << "Serial port opened.";
+    else
+        qDebug() << "Error opening port:" << serial.errorString();
+}
 
 QString ComPortAdapter::receptionConfig()
 {
-    QString config = "1{Цех, 2{Автоклав 1, 3{температура, 0, 1, 174, °С}, 3{Давление, 0, 1, 203, кПа}, 3{Уровень 1, 0, 1, 1,}, 3{Уровень 2, 0, 1, 0,}, 4{Клапан сжатый воздух, binary, 1}, 4{КЗР, binary, 0}, 4{Клапан вода, binary, 0}, 4{Клапан пар, binary, 1}, 4{Клапан сброс, binary, 0}, 4{Клапан дренаж, binary, 1}}";
-    config += ", 2{Автоклав 2, 3{температура, 0, 1, 256, °С}, 3{Давление, 0, 1, 311, кПа}, 3{Уровень 1, 0, 1, 1,}, 3{Уровень 2, 0, 1, 0,}, 4{Клапан сжатый воздух, binary, 0}, 4{КЗР, binary, 1}, 4{Клапан вода, binary, 1}, 4{Клапан пар, binary, 0}, 4{Клапан сброс, binary, 0}, 4{Клапан дренаж, binary, 0}}";
-    config += ", 3{Давление в пневмосистеме, 0, 1, 510, кПа} , 3{Давление в водопроводе, 0, 1, 530, кПа} , 3{Давление паропроводе, 0, 1, 460, кПа} , 3{Температура в цеху, 0, 1, 23, °С}}";
+    QString config = R"(
+{
+    "home": {
+        "roomList": [
+            {
+                        "type": "room",
+                        "name": "комната",
+                        "smartItemList": [
+                            {
+                                "type": "smartItem",
+                                "name": "Батарея",
+                                "sensorList": [
+                                    {
+                                        "type": "sensor",
+                                        "name": "температура батареи",
+                                        "sensorType": 0,
+                                        "pin": 1,
+                                        "address": 372,
+                                        "unit": "°С"
+                                    }
+                                ],
+                                "actuatorList": [
+                                    {
+                                        "type": "actuator",
+                                        "name": "клапан",
+                                        "actuatorType": 0,
+                                        "pin": 1
+                                    }
+                                ]
+                            }
+                        ],
+                        "sensorList": [
+                            {
+                                "type": "sensor",
+                                "name": "температура в комнате",
+                                "sensorType": 0,
+                                "pin": 1,
+                                "address": 372,
+                                "unit": "°С"
+                            }
+                        ]
+            }
+        ]
+    }
+}
+)";
     return config;
 }
+
+void ComPortAdapter::sendJson(QJsonObject json)
+{
+    QJsonDocument doc(json);
+    QByteArray data = doc.toJson(QJsonDocument::Compact) + '\n';
+    serial.write(data);
+    qDebug() << "Sent:" << data;
+}
+
+void ComPortAdapter::readData()
+{
+    static QByteArray buffer;
+    buffer.append(serial.readAll());
+
+    while (buffer.contains('\n')) {
+        int index = buffer.indexOf('\n');
+        QByteArray line = buffer.left(index).trimmed();
+        buffer.remove(0, index + 1);
+
+        QJsonDocument doc = QJsonDocument::fromJson(line);
+        if (!doc.isNull() && doc.isObject()) {
+            qDebug() << "Received JSON:" << doc.object();
+        } else {
+            qDebug() << "Invalid JSON received:" << line;
+        }
+    }
+}
+
