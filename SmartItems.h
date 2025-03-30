@@ -1,6 +1,7 @@
 #ifndef SMARTITEMS_H
 #define SMARTITEMS_H
 
+#include "Com.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -11,72 +12,87 @@
 #include <QDebug>
 
 
-class Spliter
-{
-protected:
-    QStringList splitConfig(QString config);
-};
-
-
-class Sensor : public QObject, protected Spliter
+class Sensor : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString name READ readName() NOTIFY nameChanged())
-    Q_PROPERTY(int type READ readType() NOTIFY typeChanged())
-    Q_PROPERTY(int pin READ readPin() NOTIFY pinChanged())
-    Q_PROPERTY(int address READ readAddress() NOTIFY addressChanged())
+    Q_PROPERTY(QString name READ getName() NOTIFY nameChanged())
+    Q_PROPERTY(QString type READ getType() NOTIFY typeChanged())
+    Q_PROPERTY(int pin READ getPin() NOTIFY pinChanged())
+    Q_PROPERTY(int index READ getIndex() NOTIFY indexChanged())
+    Q_PROPERTY(int refreshRate READ getRefreshRate() NOTIFY refreshRateChanged())
     Q_PROPERTY(QString measuredQuantity READ readMeasuredQuantity() NOTIFY measuredQuantityChanged())
+    Q_PROPERTY(double value READ getValue() WRITE setValue() NOTIFY valueChanged())
 
 public:
-    Sensor(const QJsonObject &json);
-    QString readName(){return name;}
-    int readType(){return type;}
-    int readPin(){return pin;}
-    int readAddress(){return address;}
+    Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter);
+    QString getName(){return name;}
+    QString getType(){return type;}
+    int getPin(){return pin;}
+    int getIndex(){return index;}
+    int getRefreshRate(){return refreshRate;}
     QString readMeasuredQuantity(){return measuredQuantity;}
+    double getValue(){return value;}
+    void setValue(double value){this->value = value; valueChanged();}
 
 signals:
     void nameChanged();
     void typeChanged();
     void pinChanged();
-    void addressChanged();
+    void indexChanged();
+    void refreshRateChanged();
     void measuredQuantityChanged();
+    void valueChanged();
+
+private slots:
+    void refreshValue();
+    void readValue(int index, double value);
 
 private:
     QString name;
-    int type;
+    QString type;
     int pin;
-    int address;
+    int index;
+    int refreshRate;
     QString measuredQuantity;
+    double value;
+    ComPortAdapter *comPortAdapter;
 };
 
 
-class Actuator : public QObject, protected Spliter
+class Actuator : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ readName() NOTIFY nameChanged())
     Q_PROPERTY(int type READ readType() NOTIFY typeChanged())
     Q_PROPERTY(int pin READ readPin() NOTIFY pinChanged())
+    Q_PROPERTY(int value READ getValue() WRITE setValue() NOTIFY valueChanged())
 
 public:
-    Actuator(const QJsonObject &json);
+    Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter);
     QString readName(){return name;}
     int readType(){return type;}
     int readPin(){return pin;}
+    int getValue(){return value;}
+    void setValue(int value){this->value = value; valueChanged();}
 
 signals:
     void nameChanged();
     void typeChanged();
     void pinChanged();
+    void valueChanged();
 
 private:
+    void sendLevl();
+
     QString name;
     int type;
     int pin;
+    int value;
+    ComPortAdapter *comPortAdapter;
 };
 
 
-class SmartItem : public QObject, protected Spliter
+class SmartItem : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ readName() NOTIFY nameChanged())
@@ -84,7 +100,7 @@ class SmartItem : public QObject, protected Spliter
     Q_PROPERTY(QList<QObject*> actuatorList READ readActuatorList() NOTIFY actuatorListChanged())
 
 public:
-    SmartItem(const QJsonObject &json);
+    SmartItem(const QJsonObject &json, ComPortAdapter *comPortAdapter);
     QString readName(){return name;}
     QList<QObject*> readSensorList(){return sensorList;}
     QList<QObject*> readActuatorList(){return actuatorList;}
@@ -98,10 +114,11 @@ private:
     QString name;
     QList<QObject*> sensorList;
     QList<QObject*> actuatorList;
+    ComPortAdapter *comPortAdapter;
 };
 
 
-class Room : public QObject, protected Spliter
+class Room : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ readName() NOTIFY nameChanged())
@@ -109,7 +126,7 @@ class Room : public QObject, protected Spliter
     Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
-    Room(const QJsonObject &json);
+    Room(const QJsonObject &json, ComPortAdapter *comPortAdapter);
     QString readName(){return name;}
     QList<QObject*> readSmartItemList(){return smartItemList;}
     QList<QObject*> readSensorList(){return sensorList;}
@@ -123,17 +140,18 @@ private:
     QString name;
     QList<QObject*> smartItemList;
     QList<QObject*> sensorList;
+    ComPortAdapter *comPortAdapter;
 };
 
 
-class Home : public QObject, protected Spliter
+class Home : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList<QObject*> roomList READ readRoomList() NOTIFY roomListChanged())
     Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
-    Home(QString config);
+    Home(QString config, ComPortAdapter *comPortAdapter);
     QList<QObject*> readRoomList(){return roomList;}
     QList<QObject*> readSensorList(){return sensorList;}
 
@@ -144,16 +162,8 @@ signals:
 private:
     QList<QObject*> roomList;
     QList<QObject*> sensorList;
+    ComPortAdapter *comPortAdapter;
 };
 
-
-enum ObjectType
-{
-    HOME = 0,
-    ROOM = 1,
-    SMARTITEM = 2,
-    SENSOR = 3,
-    ACTUATOR = 4,
-};
 
 #endif // SMARTITEMS_H

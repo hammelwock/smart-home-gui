@@ -1,3 +1,5 @@
 #include "Core.h"
 
-core::core() {}
+core::core()
+{
+}

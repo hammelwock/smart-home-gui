@@ -15,8 +15,13 @@ Rectangle {
             height: 20
             anchors.verticalCenter: parent.verticalCenter
             radius: 10
-            color: modelData.pin ? "#00ea13" : "#002f03"
+            color: modelData.value ? "#00ea13" : "#002f03"
             border.color: "black"
+            MouseArea {
+                anchors.fill: parent
+                onClicked:
+                    modelData.value = !modelData.value
+            }
         }
 
         Text {

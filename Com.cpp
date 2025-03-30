@@ -2,8 +2,8 @@
 
 ComPortAdapter::ComPortAdapter()
 {
-    serial.setPortName();
-    serial.setBaudRate(QSerialPort::Baud9600);
+    serial.setPortName("ttyACM0");
+    serial.setBaudRate(QSerialPort::Baud115200);
     serial.setDataBits(QSerialPort::Data8);
     serial.setParity(QSerialPort::NoParity);
     serial.setStopBits(QSerialPort::OneStop);
@@ -24,40 +24,77 @@ QString ComPortAdapter::receptionConfig()
     "home": {
         "roomList": [
             {
-                        "type": "room",
                         "name": "комната",
                         "smartItemList": [
                             {
-                                "type": "smartItem",
                                 "name": "Батарея",
                                 "sensorList": [
                                     {
-                                        "type": "sensor",
                                         "name": "температура батареи",
-                                        "sensorType": 0,
+                                        "sensorType": "ds18b20",
                                         "pin": 1,
-                                        "address": 372,
-                                        "unit": "°С"
+                                        "index": 1,
+                                        "unit": "°С",
+                                        "refreshRate": 1000
+                                    },
+                                    {
+                                        "name": "температура батареи",
+                                        "sensorType": "ds18b20",
+                                        "pin": 1,
+                                        "index": 2,
+                                        "unit": "°С",
+                                        "refreshRate": 1050
+                                    },
+                                    {
+                                        "name": "температура",
+                                        "sensorType": "ds18b20",
+                                        "pin": 1,
+                                        "index": 3,
+                                        "unit": "°С",
+                                        "refreshRate": 1100
+                                    },
+                                    {
+                                        "name": "температура",
+                                        "sensorType": "ds18b20",
+                                        "pin": 1,
+                                        "index": 4,
+                                        "unit": "°С",
+                                        "refreshRate": 1150
+                                    },
+                                    {
+                                        "name": "температура",
+                                        "sensorType": "ds18b20",
+                                        "pin": 1,
+                                        "index": 5,
+                                        "unit": "°С",
+                                        "refreshRate": 1170
+                                    },
+                                    {
+                                        "name": "температура",
+                                        "sensorType": "ds18b20",
+                                        "pin": 1,
+                                        "index": 6,
+                                        "unit": "°С",
+                                        "refreshRate": 1200
                                     }
                                 ],
                                 "actuatorList": [
                                     {
-                                        "type": "actuator",
                                         "name": "клапан",
                                         "actuatorType": 0,
-                                        "pin": 1
+                                        "pin": 13
                                     }
                                 ]
                             }
                         ],
                         "sensorList": [
                             {
-                                "type": "sensor",
                                 "name": "температура в комнате",
-                                "sensorType": 0,
-                                "pin": 1,
-                                "address": 372,
-                                "unit": "°С"
+                                "sensorType": "ds18b20",
+                                "pin": 0,
+                                "index": 0,
+                                "unit": "°С",
+                                "refreshRate": 1300
                             }
                         ]
             }
@@ -70,10 +107,9 @@ QString ComPortAdapter::receptionConfig()
 
 void ComPortAdapter::sendJson(QJsonObject json)
 {
-    QJsonDocument doc(json);
-    QByteArray data = doc.toJson(QJsonDocument::Compact) + '\n';
-    serial.write(data);
-    qDebug() << "Sent:" << data;
+    sendStack.append(new QJsonDocument(json));
+    if (sendStack.count() == 1)
+        sendJsonToCom();
 }
 
 void ComPortAdapter::readData()
@@ -87,11 +123,43 @@ void ComPortAdapter::readData()
         buffer.remove(0, index + 1);
 
         QJsonDocument doc = QJsonDocument::fromJson(line);
-        if (!doc.isNull() && doc.isObject()) {
+        if (!doc.isNull() && doc.isObject())
+        {
             qDebug() << "Received JSON:" << doc.object();
-        } else {
-            qDebug() << "Invalid JSON received:" << line;
+            QJsonObject jsonObj = doc.object();
+            if (jsonObj.contains("ds18b20Index"))
+                emit ds18b20Read(jsonObj["ds18b20Index"].toInt(),
+                    jsonObj["value"].toInt());
+
+            if (jsonObj.contains("recd"))
+                jsonRecd(&doc);
         }
+        else
+            qDebug() << "Invalid JSON received:" << line;
+    }
+}
+
+void ComPortAdapter::sendJsonToCom()
+{
+    QString data = sendStack.first()->toJson(QJsonDocument::Compact);
+    serial.write(data.toStdString().c_str());
+    serial.flush();
+    qDebug() << "Sent:" << data.toStdString().c_str();
+    QTimer::singleShot(1000, this, &ComPortAdapter::sendJsonToCom);
+}
+
+void ComPortAdapter::jsonRecd(QJsonDocument *json)
+{
+    if (sendStack.count())
+    {
+        if (json == sendStack.first())
+        {
+            sendStack.removeFirst();
+            if (sendStack.count())
+                sendJsonToCom();
+        }
+        else
+            sendJsonToCom();
     }
 }
 

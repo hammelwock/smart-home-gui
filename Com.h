@@ -15,8 +15,9 @@
 #include <QJsonObject>
 #include <QDebug>
 
-class ComPortAdapter
+class ComPortAdapter : public QObject
 {
+    Q_OBJECT
 public:
     ComPortAdapter();
     QString receptionConfig();
@@ -25,8 +26,15 @@ public:
 private slots:
     void readData();
 
+signals:
+    void ds18b20Read(int index, double value);
+
 private:
+    void sendJsonToCom();
+    void jsonRecd(QJsonDocument* json);
+
     QSerialPort serial;
+    QList<QJsonDocument*> sendStack;
 };
 
 #endif // COM_H

@@ -8,7 +8,7 @@ Rectangle {
     Text {
         x: 20
         anchors.verticalCenter: parent.verticalCenter
-        text: modelData.name + ": " + modelData.address + modelData.measuredQuantity
+        text: modelData.name + ": " + modelData.value + modelData.measuredQuantity
     }
 }
 
