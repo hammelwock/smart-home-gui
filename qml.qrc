@@ -8,5 +8,7 @@
         <file>SignalLamp.qml</file>
         <file>Actuator.qml</file>
         <file>images/autoclave.webp</file>
+        <file>Regulator.qml</file>
+        <file>PlusMinus.qml</file>
     </qresource>
 </RCC>

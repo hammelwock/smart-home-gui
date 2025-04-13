@@ -11,7 +11,6 @@
 #include <QJsonArray>
 #include <QDebug>
 
-
 class Sensor : public QObject
 {
     Q_OBJECT
@@ -59,6 +58,22 @@ private:
 };
 
 
+class Regulator : public QObject
+{
+    Q_OBJECT
+public:
+    Regulator(int target, int hysteresis, bool invert);
+    bool regulate();
+
+private:
+    int target;
+    int hysteresis;
+    bool state;
+    bool invert;
+    Sensor* sensor;
+};
+
+
 class Actuator : public QObject
 {
     Q_OBJECT
@@ -89,6 +104,7 @@ private:
     int pin;
     int value;
     ComPortAdapter *comPortAdapter;
+    Regulator* regulator;
 };
 
 

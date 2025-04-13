@@ -1,5 +1,3 @@
 #include "Core.h"
 
-core::core()
-{
-}
+AllElements* allElements;

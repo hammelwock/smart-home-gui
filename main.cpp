@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include "Com.h"
 #include "SmartItems.h"
+#include "Core.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,6 +13,8 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+
+    allElements = new AllElements();
 
     ComPortAdapter *comPortAdapter = new ComPortAdapter();
     Home *home = new Home(comPortAdapter->receptionConfig(), comPortAdapter);

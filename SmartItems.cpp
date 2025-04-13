@@ -2,6 +2,8 @@
 #include <QStack>
 #include <QDebug>
 
+#include "Core.h"
+
 
 Sensor::Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter)
 {
@@ -21,6 +23,8 @@ Sensor::Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     timer->start(refreshRate);
 
     connect(comPortAdapter, &ComPortAdapter::ds18b20Read, this, &Sensor::readValue);
+
+    allElements->addSensor(this);
 }
 
 void Sensor::refreshValue()
@@ -125,3 +129,23 @@ Home::Home(QString config, ComPortAdapter *comPortAdapter)
 }
 
 
+
+Regulator::Regulator(int target, int hysteresis, bool invert)
+{
+    this->target = target;
+    this->hysteresis = hysteresis;
+    this->invert = invert;
+}
+
+bool Regulator::regulate()
+{
+    if (state)
+        state = target - hysteresis / 2 > sensor->getValue();
+    else
+        state = target + hysteresis / 2 > sensor->getValue();
+
+    if(invert)
+        state = !state;
+
+    return state;
+}
