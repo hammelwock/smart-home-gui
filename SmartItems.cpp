@@ -27,6 +27,20 @@ Sensor::Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     allElements->addSensor(this);
 }
 
+QJsonObject Sensor::saveJson()
+{
+    QJsonObject obj;
+
+    obj["name"] = name;
+    obj["type"] = type;
+    obj["pin"] = pin;
+    obj["index"] = index;
+    obj["refreshRate"] = refreshRate;
+    obj["measuredQuantity"] = measuredQuantity;
+
+    return obj;
+}
+
 void Sensor::refreshValue()
 {
     QJsonObject json;
@@ -45,7 +59,42 @@ void Sensor::readValue(int index, double value)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+Regulator::Regulator(int target, int hysteresis, bool invert)
+{
+    this->target = target;
+    this->hysteresis = hysteresis;
+    this->invert = invert;
+}
+
+bool Regulator::regulate()
+{
+    if (state)
+        state = target - hysteresis / 2 > sensor->getValue();
+    else
+        state = target + hysteresis / 2 > sensor->getValue();
+
+    if(invert)
+        state = !state;
+
+    return state;
+}
+
+QJsonObject Regulator::saveJson()
+{
+    QJsonObject obj;
+
+    obj["target"] = target;
+    obj["hysteresis"] = hysteresis;
+    obj["state"] = state;
+    obj["invert"] = invert;
+    obj["sensorName"] = sensor->getName();
+
+    return obj;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 Actuator::Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter)
 {
@@ -65,6 +114,21 @@ Actuator::Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     connect(this, &Actuator::valueChanged, this, &Actuator::sendLevl);
 }
 
+
+QJsonObject Actuator::saveJson()
+{
+    QJsonObject obj;
+
+    obj["name"] = name;
+    obj["type"] = type;
+    obj["pin"] = pin;
+
+    obj["regulator"] = regulator->saveJson();
+
+    return obj;
+}
+
+
 void Actuator::sendLevl()
 {
     QJsonObject json;
@@ -74,7 +138,7 @@ void Actuator::sendLevl()
     comPortAdapter->sendJson(json);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 SmartItem::SmartItem(const QJsonObject &json, ComPortAdapter *comPortAdapter)
 {
@@ -91,6 +155,27 @@ SmartItem::SmartItem(const QJsonObject &json, ComPortAdapter *comPortAdapter)
         actuatorList.append(new Actuator(value.toObject(), comPortAdapter));
 }
 
+QJsonObject SmartItem::saveJson()
+{
+    QJsonObject obj;
+
+    obj["name"] = name;
+
+    QJsonArray sensorArray;
+    for (int i = 0; i < sensorList.count(); i++)
+        sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
+    obj["sensorList"] = sensorArray;
+
+    QJsonArray actuatorArray;
+    for (int i = 0; i < actuatorList.count(); i++)
+        actuatorArray.append(qobject_cast<Actuator*>(actuatorList.at(i))->saveJson());
+    obj["smartItemList"] = actuatorArray;
+
+    return obj;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 Room::Room(const QJsonObject &json, ComPortAdapter *comPortAdapter)
 {
     this->comPortAdapter = comPortAdapter;
@@ -104,6 +189,25 @@ Room::Room(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     QJsonArray sensors = json["sensorList"].toArray();
     for (const QJsonValue &value : sensors)
         sensorList.append(new Sensor(value.toObject(), comPortAdapter));
+}
+
+QJsonObject Room::saveJson()
+{
+    QJsonObject obj;
+
+    obj["name"] = name;
+
+    QJsonArray smartItemArray;
+    for (int i = 0; i < smartItemList.count(); i++)
+        smartItemArray.append(qobject_cast<SmartItem*>(smartItemList.at(i))->saveJson());
+    obj["smartItemList"] = smartItemArray;
+
+    QJsonArray sensorArray;
+    for (int i = 0; i < sensorList.count(); i++)
+        sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
+    obj["sensorList"] = sensorArray;
+
+    return obj;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,24 +232,18 @@ Home::Home(QString config, ComPortAdapter *comPortAdapter)
 
 }
 
-
-
-Regulator::Regulator(int target, int hysteresis, bool invert)
+void Home::saveJson()
 {
-    this->target = target;
-    this->hysteresis = hysteresis;
-    this->invert = invert;
-}
+    QJsonObject obj;
 
-bool Regulator::regulate()
-{
-    if (state)
-        state = target - hysteresis / 2 > sensor->getValue();
-    else
-        state = target + hysteresis / 2 > sensor->getValue();
+    QJsonArray roomArray;
+    for (int i = 0; i < roomList.count(); i++)
+        roomArray.append(qobject_cast<SmartItem*>(roomList.at(i))->saveJson());
+    obj["roomList"] = roomArray;
 
-    if(invert)
-        state = !state;
+    QJsonArray sensorArray;
+    for (int i = 0; i < sensorList.count(); i++)
+        sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
+    obj["sensorList"] = sensorArray;
 
-    return state;
 }

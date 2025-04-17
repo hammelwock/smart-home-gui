@@ -1,8 +1,8 @@
 import QtQuick 2.15
 
 Rectangle {
-    height: 200
     width: 250
+    height: 200
     radius: 10
     color: "#909090"
 
@@ -17,7 +17,6 @@ Rectangle {
         Row {
             x: 10
             spacing: 10
-            anchors.verticalCenter: parent.verticalCenter
             Rectangle {
                 width: 50
                 height: 20

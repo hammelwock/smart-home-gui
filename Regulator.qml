@@ -1,10 +1,11 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 Rectangle {
     height: 150
     width: 250
     radius: 10
-    color: "#909000"
+    color: "#808080"
     Column {
         anchors.fill: parent
         spacing: 10
@@ -21,14 +22,9 @@ Rectangle {
                     text: "Цель: "
                 }
 
-                Text {
-                    text: "400 кПа"
-                }
-            }
+                IntInput {
 
-            PlusMinus {
-                width: 100
-                anchors.right: parent.right
+                }
             }
         }
 
@@ -43,15 +39,10 @@ Rectangle {
                 Text {
                     text: "Гистерезис: "
                 }
+                IntInput {
 
-                Text {
-                    text: "400 кПа"
                 }
-            }
 
-            PlusMinus {
-                width: 100
-                anchors.right: parent.right
             }
         }
 
@@ -65,9 +56,10 @@ Rectangle {
                 text: "Инвертировать: "
             }
 
-            PlusMinus {
-                width: 100
+            Switch {
+                id: toggle
                 anchors.right: parent.right
+                checked: false
             }
         }
     }

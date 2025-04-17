@@ -10,5 +10,7 @@
         <file>images/autoclave.webp</file>
         <file>Regulator.qml</file>
         <file>PlusMinus.qml</file>
+        <file>SliderCheckbox.qml</file>
+        <file>IntInput.qml</file>
     </qresource>
 </RCC>

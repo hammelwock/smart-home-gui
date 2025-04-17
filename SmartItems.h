@@ -29,9 +29,12 @@ public:
     int getPin(){return pin;}
     int getIndex(){return index;}
     int getRefreshRate(){return refreshRate;}
-    QString readMeasuredQuantity(){return measuredQuantity;}
     double getValue(){return value;}
     void setValue(double value){this->value = value; valueChanged();}
+
+    QString readMeasuredQuantity(){return measuredQuantity;}
+
+    QJsonObject saveJson();
 
 signals:
     void nameChanged();
@@ -65,6 +68,8 @@ public:
     Regulator(int target, int hysteresis, bool invert);
     bool regulate();
 
+    QJsonObject saveJson();
+
 private:
     int target;
     int hysteresis;
@@ -89,6 +94,8 @@ public:
     int readPin(){return pin;}
     int getValue(){return value;}
     void setValue(int value){this->value = value; valueChanged();}
+
+    QJsonObject saveJson();
 
 signals:
     void nameChanged();
@@ -121,6 +128,8 @@ public:
     QList<QObject*> readSensorList(){return sensorList;}
     QList<QObject*> readActuatorList(){return actuatorList;}
 
+    QJsonObject saveJson();
+
 signals:
     void nameChanged();
     void sensorListChanged();
@@ -147,6 +156,8 @@ public:
     QList<QObject*> readSmartItemList(){return smartItemList;}
     QList<QObject*> readSensorList(){return sensorList;}
 
+    QJsonObject saveJson();
+
 signals:
     void nameChanged();
     void smartItemListChanged();
@@ -170,6 +181,8 @@ public:
     Home(QString config, ComPortAdapter *comPortAdapter);
     QList<QObject*> readRoomList(){return roomList;}
     QList<QObject*> readSensorList(){return sensorList;}
+
+    Q_INVOKABLE void saveJson();
 
 signals:
     void roomListChanged();
