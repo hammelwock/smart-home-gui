@@ -20,7 +20,8 @@ class ComPortAdapter : public QObject
     Q_OBJECT
 public:
     ComPortAdapter();
-    QString receptionConfig();
+    virtual QJsonObject readConfig(){}
+    virtual void saveConfig(QJsonObject json){}
     void sendJson(QJsonObject json);
 
 private slots:
@@ -35,6 +36,13 @@ private:
 
     QSerialPort serial;
     QList<QJsonDocument*> sendStack;
+};
+
+
+class TestComPortAdapter : public ComPortAdapter
+{
+    QJsonObject readConfig();
+    void saveConfig(QJsonObject json);
 };
 
 #endif // COM_H

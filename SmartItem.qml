@@ -34,8 +34,14 @@ Rectangle {
             height: contentHeight
             y: 10
             spacing: 20
-            model : modelData.sensorList
-            delegate : Sensor {}
+
+            model: modelData.sensorList
+
+            delegate: Loader {
+                source: modelData.type === "ds18b20" ? "sensors/Ds18b20Sensor.qml" :
+                        modelData.type === "discrete" ? "sensors/DiscreteSensor.qml" :
+                        "sensors/DiscreteSensor.qml"
+            }
         }
 
         ListView {

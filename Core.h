@@ -3,24 +3,26 @@
 
 #include <QObject>
 
+#include "SmartItems.h"
+
 class AllElements : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
+    //Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
     AllElements(){}
-    QList<QObject*> readSensorList(){return sensorList;}
-    void addSensor(QObject* sensor){sensorList.append(sensor);}
+    Sensor* getSensor(QString sensorName);
+    void addSensor(Sensor* sensor){sensorList.append(sensor);}
 
 signals:
     void sensorListChanged();
 
 private:
-    QList<QObject*> roomList;
-    QList<QObject*> smartItemList;
-    QList<QObject*> actuatorList;
-    QList<QObject*> sensorList;
+//    QList<QObject*> roomList;
+//    QList<QObject*> smartItemList;
+//    QList<QObject*> actuatorList;
+    QList<Sensor*> sensorList;
 };
 
 extern AllElements* allElements;

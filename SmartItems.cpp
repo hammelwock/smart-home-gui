@@ -110,6 +110,9 @@ Actuator::Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     initPinJson["pin"] = pin;
     initPinJson["mode"] = "output";
 
+    //if (json["regulator"].toBool())
+        //regulator = new Regulator(json["regulator"].toObject()*);
+
     comPortAdapter->sendJson(initPinJson);
     connect(this, &Actuator::valueChanged, this, &Actuator::sendLevl);
 }
@@ -123,7 +126,7 @@ QJsonObject Actuator::saveJson()
     obj["type"] = type;
     obj["pin"] = pin;
 
-    obj["regulator"] = regulator->saveJson();
+    //obj["regulator"] = regulator->saveJson();
 
     return obj;
 }
@@ -212,14 +215,11 @@ QJsonObject Room::saveJson()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Home::Home(QString config, ComPortAdapter *comPortAdapter)
+Home::Home(QJsonObject json, ComPortAdapter *comPortAdapter)
 {
     this->comPortAdapter = comPortAdapter;
 
-    QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
-    QJsonObject root = doc.object();
-
-    QJsonObject home = root["home"].toObject();
+    QJsonObject home = json["home"].toObject();
 
     QJsonArray rooms = home["roomList"].toArray();
     qDebug() << "rooms содержит:" << rooms;
@@ -232,13 +232,13 @@ Home::Home(QString config, ComPortAdapter *comPortAdapter)
 
 }
 
-void Home::saveJson()
+QJsonObject Home::saveJson()
 {
     QJsonObject obj;
 
     QJsonArray roomArray;
     for (int i = 0; i < roomList.count(); i++)
-        roomArray.append(qobject_cast<SmartItem*>(roomList.at(i))->saveJson());
+        roomArray.append(qobject_cast<Room*>(roomList.at(i))->saveJson());
     obj["roomList"] = roomArray;
 
     QJsonArray sensorArray;
@@ -246,4 +246,5 @@ void Home::saveJson()
         sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
     obj["sensorList"] = sensorArray;
 
+    return obj;
 }

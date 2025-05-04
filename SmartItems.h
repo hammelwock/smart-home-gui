@@ -1,7 +1,6 @@
 #ifndef SMARTITEMS_H
 #define SMARTITEMS_H
 
-#include "Com.h"
 #include <QObject>
 #include <QString>
 #include <QList>
@@ -10,6 +9,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDebug>
+
+#include "Com.h"
 
 class Sensor : public QObject
 {
@@ -178,11 +179,11 @@ class Home : public QObject
     Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
-    Home(QString config, ComPortAdapter *comPortAdapter);
+    Home(QJsonObject json, ComPortAdapter *comPortAdapter);
     QList<QObject*> readRoomList(){return roomList;}
     QList<QObject*> readSensorList(){return sensorList;}
 
-    Q_INVOKABLE void saveJson();
+    QJsonObject saveJson();
 
 signals:
     void roomListChanged();

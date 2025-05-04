@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>Sensor.qml</file>
         <file>SmartItem.qml</file>
         <file>Room.qml</file>
         <file>images/radiator.webp</file>
@@ -12,5 +11,7 @@
         <file>PlusMinus.qml</file>
         <file>SliderCheckbox.qml</file>
         <file>IntInput.qml</file>
+        <file>sensors/DiscreteSensor.qml</file>
+        <file>sensors/Ds18b20Sensor.qml</file>
     </qresource>
 </RCC>

@@ -16,8 +16,10 @@ int main(int argc, char *argv[])
 
     allElements = new AllElements();
 
-    ComPortAdapter *comPortAdapter = new ComPortAdapter();
-    Home *home = new Home(comPortAdapter->receptionConfig(), comPortAdapter);
+    ComPortAdapter *comPortAdapter = new TestComPortAdapter();
+    Home *home = new Home(comPortAdapter->readConfig(), comPortAdapter);
+
+    comPortAdapter->saveConfig(home->saveJson());
 
     engine.rootContext()->setContextProperty("home", home);
 

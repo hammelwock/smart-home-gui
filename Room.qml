@@ -29,17 +29,17 @@ Rectangle {
             delegate : SmartItem {}
         }
 
-        ListView {
-            id: sensors
-            width: parent.width
-            height: contentHeight
-            spacing: 20
-            model : modelData.sensorList
-            delegate : Sensor {
-                width: 400
-                color: "#606060"
-            }
-        }
+//        ListView {
+//            id: sensors
+//            width: parent.width
+//            height: contentHeight
+//            spacing: 20
+//            model : modelData.sensorList
+//            delegate : Sensor {
+//                width: 400
+//                color: "#606060"
+//            }
+//        }
     }
 }
 

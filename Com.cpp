@@ -17,93 +17,100 @@ ComPortAdapter::ComPortAdapter()
         qDebug() << "Error opening port:" << serial.errorString();
 }
 
-QString ComPortAdapter::receptionConfig()
-{
-    QString config = R"(
-{
-    "home": {
-        "roomList": [
-            {
-                        "name": "комната",
-                        "smartItemList": [
-                            {
-                                "name": "Батарея",
-                                "sensorList": [
-                                    {
-                                        "name": "температура батареи",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 1,
-                                        "unit": "°С",
-                                        "refreshRate": 1000
-                                    },
-                                    {
-                                        "name": "температура батареи",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 2,
-                                        "unit": "°С",
-                                        "refreshRate": 1050
-                                    },
-                                    {
-                                        "name": "температура",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 3,
-                                        "unit": "°С",
-                                        "refreshRate": 1100
-                                    },
-                                    {
-                                        "name": "температура",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 4,
-                                        "unit": "°С",
-                                        "refreshRate": 1150
-                                    },
-                                    {
-                                        "name": "температура",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 5,
-                                        "unit": "°С",
-                                        "refreshRate": 1170
-                                    },
-                                    {
-                                        "name": "температура",
-                                        "sensorType": "ds18b20",
-                                        "pin": 1,
-                                        "index": 6,
-                                        "unit": "°С",
-                                        "refreshRate": 1200
-                                    }
-                                ],
-                                "actuatorList": [
-                                    {
-                                        "name": "клапан",
-                                        "actuatorType": 0,
-                                        "pin": 13
-                                    }
-                                ]
-                            }
-                        ],
-                        "sensorList": [
-                            {
-                                "name": "температура в комнате",
-                                "sensorType": "ds18b20",
-                                "pin": 0,
-                                "index": 0,
-                                "unit": "°С",
-                                "refreshRate": 1300
-                            }
-                        ]
-            }
-        ]
-    }
-}
-)";
-    return config;
-}
+//QJsonObject ComPortAdapter::readConfig()
+//{
+//    QString config = R"(
+//{
+//    "home": {
+//        "roomList": [
+//            {
+//                        "name": "комната",
+//                        "smartItemList": [
+//                            {
+//                                "name": "Батарея",
+//                                "sensorList": [
+//                                    {
+//                                        "name": "температура батареи",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 1,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1000
+//                                    },
+//                                    {
+//                                        "name": "температура батареи",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 2,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1050
+//                                    },
+//                                    {
+//                                        "name": "температура",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 3,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1100
+//                                    },
+//                                    {
+//                                        "name": "температура",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 4,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1150
+//                                    },
+//                                    {
+//                                        "name": "температура",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 5,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1170
+//                                    },
+//                                    {
+//                                        "name": "температура",
+//                                        "sensorType": "ds18b20",
+//                                        "pin": 1,
+//                                        "index": 6,
+//                                        "unit": "°С",
+//                                        "refreshRate": 1200
+//                                    },
+//                                    {
+//                                        "name": "test",
+//                                        "sensorType": "discrete",
+//                                        "pin": 6,
+//                                        "unit": "G",
+//                                        "refreshRate": 1200
+//                                    }
+//                                ],
+//                                "actuatorList": [
+//                                    {
+//                                        "name": "клапан",
+//                                        "actuatorType": 0,
+//                                        "pin": 13
+//                                    }
+//                                ]
+//                            }
+//                        ],
+//                        "sensorList": [
+//                            {
+//                                "name": "температура в комнате",
+//                                "sensorType": "ds18b20",
+//                                "pin": 0,
+//                                "index": 0,
+//                                "unit": "°С",
+//                                "refreshRate": 1300
+//                            }
+//                        ]
+//            }
+//        ]
+//    }
+//}
+//)";
+//    return config;
+//}
 
 void ComPortAdapter::sendJson(QJsonObject json)
 {
@@ -163,3 +170,33 @@ void ComPortAdapter::jsonRecd(QJsonDocument *json)
     }
 }
 
+
+QJsonObject TestComPortAdapter::readConfig()
+{
+    QFile file("config1.json");
+    QByteArray data;
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        data = file.readAll();
+        file.close();
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &parseError);
+
+
+    return jsonDoc.object();
+}
+
+void TestComPortAdapter::saveConfig(QJsonObject json)
+{
+    QJsonDocument jsonDoc(json);
+
+    QString jsonString = jsonDoc.toJson(QJsonDocument::Indented);
+
+    QFile file("config.json");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        file.write(jsonString.toUtf8());
+        file.close();
+    }
+}

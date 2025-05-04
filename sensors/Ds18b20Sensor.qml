@@ -11,4 +11,3 @@ Rectangle {
         text: modelData.name + ": " + modelData.value + modelData.measuredQuantity
     }
 }
-
