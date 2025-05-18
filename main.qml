@@ -8,11 +8,11 @@ Window {
     color: "#303030"
 
     ListView {
-        width: parent.width - 300
+        width: parent.width - 20
         height: parent.height
-        x: 300
+        x: 10
         spacing: 20
-        model: home.roomList
-        delegate: Room{}
+        model: home.controllerList
+        delegate: Controller{}
     }
 }

@@ -19,30 +19,28 @@ class ComPortAdapter : public QObject
 {
     Q_OBJECT
 public:
-    ComPortAdapter();
-    virtual QJsonObject readConfig(){}
-    virtual void saveConfig(QJsonObject json){}
+    ComPortAdapter(QString port, QString file);
+    QJsonObject readConfig();
+    void saveConfig(QJsonObject json);
     void sendJson(QJsonObject json);
 
 private slots:
     void readData();
 
 signals:
-    void ds18b20Read(int index, double value);
+    void valueRead(int pin, double value, QString type);
 
 private:
     void sendJsonToCom();
     void jsonRecd(QJsonDocument* json);
 
+
     QSerialPort serial;
     QList<QJsonDocument*> sendStack;
+    QTimer* timer;
+
+    QString fileJ;
 };
 
-
-class TestComPortAdapter : public ComPortAdapter
-{
-    QJsonObject readConfig();
-    void saveConfig(QJsonObject json);
-};
 
 #endif // COM_H

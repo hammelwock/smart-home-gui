@@ -13,7 +13,7 @@ class AllElements : public QObject
 public:
     AllElements(){}
     Sensor* getSensor(QString sensorName);
-    void addSensor(Sensor* sensor){sensorList.append(sensor);}
+    void addSensor(Sensor* sensor);
 
 signals:
     void sensorListChanged();

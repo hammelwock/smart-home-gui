@@ -10,8 +10,8 @@ Rectangle {
         anchors.fill: parent
         spacing: 10
 
-        Regulator {
-
+        Loader {
+            source: modelData.regulator ? "Regulator.qml" : ""
         }
 
         Row {

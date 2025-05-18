@@ -10,3 +10,9 @@ Sensor *AllElements::getSensor(QString sensorName)
 
     return 0;
 }
+
+void AllElements::addSensor(Sensor *sensor)
+{
+    sensorList.append(sensor);
+    emit sensorListChanged();
+}

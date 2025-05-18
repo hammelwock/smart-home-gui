@@ -16,10 +16,15 @@ int main(int argc, char *argv[])
 
     allElements = new AllElements();
 
-    ComPortAdapter *comPortAdapter = new TestComPortAdapter();
-    Home *home = new Home(comPortAdapter->readConfig(), comPortAdapter);
+    ComPortAdapter *comPortAdapter = new ComPortAdapter("ttyUSB0", "config.json");
+    ComPortAdapter *comPortAdapter2 = new ComPortAdapter("ttyACM0", "config1.json");
 
-    comPortAdapter->saveConfig(home->saveJson());
+    Home *home = new Home();
+
+    home->addController(new Controller(comPortAdapter2->readConfig(), comPortAdapter2));
+    home->addController(new Controller(comPortAdapter->readConfig(), comPortAdapter));
+
+    qobject_cast<Controller*>(home->getControllerList().at(0))->saveJson();
 
     engine.rootContext()->setContextProperty("home", home);
 

@@ -10,9 +10,8 @@ Sensor::Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     this->comPortAdapter = comPortAdapter;
 
     name = json["name"].toString();
-    type = json["sensorType"].toString();
+    type = json["type"].toString();
     pin = json["pin"].toInt();
-    index = json["index"].toInt();
     refreshRate = json["refreshRate"].toInt();
     measuredQuantity = json["unit"].toString();
 
@@ -22,7 +21,7 @@ Sensor::Sensor(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     connect(timer, &QTimer::timeout, this, &Sensor::refreshValue);
     timer->start(refreshRate);
 
-    connect(comPortAdapter, &ComPortAdapter::ds18b20Read, this, &Sensor::readValue);
+    connect(comPortAdapter, &ComPortAdapter::valueRead, this, &Sensor::readValue);
 
     allElements->addSensor(this);
 }
@@ -34,7 +33,6 @@ QJsonObject Sensor::saveJson()
     obj["name"] = name;
     obj["type"] = type;
     obj["pin"] = pin;
-    obj["index"] = index;
     obj["refreshRate"] = refreshRate;
     obj["measuredQuantity"] = measuredQuantity;
 
@@ -46,13 +44,13 @@ void Sensor::refreshValue()
     QJsonObject json;
     json["cmd"] = "read";
     json["type"] = type;
-    json["index"] = index;
+    json["pin"] = pin;
     comPortAdapter->sendJson(json);
 }
 
-void Sensor::readValue(int index, double value)
+void Sensor::readValue(int pin, double value, QString type)
 {
-    if (index == this->index)
+    if (pin == this->pin && type == this->type)
     {
         this->value = value;
         emit valueChanged();
@@ -61,14 +59,17 @@ void Sensor::readValue(int index, double value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-Regulator::Regulator(int target, int hysteresis, bool invert)
+Regulator::Regulator(const QJsonObject &json)
 {
-    this->target = target;
-    this->hysteresis = hysteresis;
-    this->invert = invert;
+    target = json["target"].toInt();
+    hysteresis = json["hysteresis"].toInt();
+    invert = json["invert"].toBool();
+    sensorName = json["sensorName"].toString();
+
+    connect(allElements, &AllElements::sensorListChanged, this, &Regulator::setSensor);
 }
 
-bool Regulator::regulate()
+void Regulator::regulate()
 {
     if (state)
         state = target - hysteresis / 2 > sensor->getValue();
@@ -78,7 +79,13 @@ bool Regulator::regulate()
     if(invert)
         state = !state;
 
-    return state;
+    emit adjusted(state);
+}
+
+void Regulator::setSensor()
+{
+    sensor = allElements->getSensor(sensorName);
+    connect(sensor, &Sensor::valueChanged, this, &Regulator::regulate);
 }
 
 QJsonObject Regulator::saveJson()
@@ -89,7 +96,7 @@ QJsonObject Regulator::saveJson()
     obj["hysteresis"] = hysteresis;
     obj["state"] = state;
     obj["invert"] = invert;
-    obj["sensorName"] = sensor->getName();
+    obj["sensorName"] = sensorName;
 
     return obj;
 }
@@ -110,11 +117,21 @@ Actuator::Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     initPinJson["pin"] = pin;
     initPinJson["mode"] = "output";
 
-    //if (json["regulator"].toBool())
-        //regulator = new Regulator(json["regulator"].toObject()*);
+    if (json.contains("regulator"))
+        regulator = new Regulator(json["regulator"].toObject());
 
     comPortAdapter->sendJson(initPinJson);
-    connect(this, &Actuator::valueChanged, this, &Actuator::sendLevl);
+    connect(this, &Actuator::valueChanged, this, &Actuator::sendValue);
+    connect(regulator, &Regulator::adjusted, this, &Actuator::setValue); //to do?
+}
+
+void Actuator::setValue(int value)
+{
+    if (this->value != value)
+    {
+        this->value = value;
+        emit valueChanged();
+    }
 }
 
 
@@ -126,18 +143,19 @@ QJsonObject Actuator::saveJson()
     obj["type"] = type;
     obj["pin"] = pin;
 
-    //obj["regulator"] = regulator->saveJson();
+    if(regulator)
+        obj["regulator"] = regulator->saveJson();
 
     return obj;
 }
 
 
-void Actuator::sendLevl()
+void Actuator::sendValue()
 {
     QJsonObject json;
-    json["cmd"] = "write";
+    json["cmd"] = "digitalWrite";
     json["pin"] = pin;
-    json["value"] = value;
+    json["setValue"] = value;
     comPortAdapter->sendJson(json);
 }
 
@@ -172,79 +190,38 @@ QJsonObject SmartItem::saveJson()
     QJsonArray actuatorArray;
     for (int i = 0; i < actuatorList.count(); i++)
         actuatorArray.append(qobject_cast<Actuator*>(actuatorList.at(i))->saveJson());
-    obj["smartItemList"] = actuatorArray;
+    obj["actuatorList"] = actuatorArray;
 
     return obj;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-Room::Room(const QJsonObject &json, ComPortAdapter *comPortAdapter)
+Controller::Controller(const QJsonObject &json, ComPortAdapter *comPortAdapter)
 {
     this->comPortAdapter = comPortAdapter;
 
     name = json["name"].toString();
+    type = json["type"].toString();
 
     QJsonArray smartItems = json["smartItemList"].toArray();
     for (const QJsonValue &value : smartItems)
         smartItemList.append(new SmartItem(value.toObject(), comPortAdapter));
-
-    QJsonArray sensors = json["sensorList"].toArray();
-    for (const QJsonValue &value : sensors)
-        sensorList.append(new Sensor(value.toObject(), comPortAdapter));
 }
 
-QJsonObject Room::saveJson()
+QJsonObject Controller::saveJson()
 {
     QJsonObject obj;
 
     obj["name"] = name;
+    obj["type"] = type;
 
     QJsonArray smartItemArray;
     for (int i = 0; i < smartItemList.count(); i++)
         smartItemArray.append(qobject_cast<SmartItem*>(smartItemList.at(i))->saveJson());
     obj["smartItemList"] = smartItemArray;
 
-    QJsonArray sensorArray;
-    for (int i = 0; i < sensorList.count(); i++)
-        sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
-    obj["sensorList"] = sensorArray;
-
-    return obj;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Home::Home(QJsonObject json, ComPortAdapter *comPortAdapter)
-{
-    this->comPortAdapter = comPortAdapter;
-
-    QJsonObject home = json["home"].toObject();
-
-    QJsonArray rooms = home["roomList"].toArray();
-    qDebug() << "rooms содержит:" << rooms;
-    for (const QJsonValue &value : rooms)
-        roomList.append(new Room(value.toObject(), comPortAdapter));
-
-    QJsonArray sensors = home["sensorList"].toArray();
-    for (const QJsonValue &value : sensors)
-        sensorList.append(new Sensor(value.toObject(), comPortAdapter));
-
-}
-
-QJsonObject Home::saveJson()
-{
-    QJsonObject obj;
-
-    QJsonArray roomArray;
-    for (int i = 0; i < roomList.count(); i++)
-        roomArray.append(qobject_cast<Room*>(roomList.at(i))->saveJson());
-    obj["roomList"] = roomArray;
-
-    QJsonArray sensorArray;
-    for (int i = 0; i < sensorList.count(); i++)
-        sensorArray.append(qobject_cast<Sensor*>(sensorList.at(i))->saveJson());
-    obj["sensorList"] = sensorArray;
+    comPortAdapter->saveConfig(obj);
 
     return obj;
 }

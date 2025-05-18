@@ -2,7 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>SmartItem.qml</file>
-        <file>Room.qml</file>
+        <file>Controller.qml</file>
         <file>images/radiator.webp</file>
         <file>SignalLamp.qml</file>
         <file>Actuator.qml</file>
@@ -13,5 +13,8 @@
         <file>IntInput.qml</file>
         <file>sensors/DiscreteSensor.qml</file>
         <file>sensors/Ds18b20Sensor.qml</file>
+        <file>images/arduinoMega.png</file>
+        <file>images/arduinoNano.png</file>
+        <file>images/arduinoUno.png</file>
     </qresource>
 </RCC>
