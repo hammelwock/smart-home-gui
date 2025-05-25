@@ -1,8 +1,10 @@
 import QtQuick 2.15
+import "components"
 
 Rectangle {
-    height: Math.max(220, sensors.height + 40, actuators.height + 40)
-    width: parent.width - 40
+    id: smartItem
+    height: Math.max(220, sensorsColunn.height + 40, actuatorsColunn.height + 40)
+    width: parent.width
     radius: 10
     color: "#606060"
 
@@ -11,48 +13,79 @@ Rectangle {
         x: 20
         y: 20
         spacing: 20
-        SignalLamp {}
 
         Column {
             spacing: 20
-            Text {
+
+            MyTextInput {
+                id: name
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: modelData.name
+                infoText: "Имя:"
+                onTextChanged: modelData.name = text
             }
 
             Image {
-                height: 150
-                width: 150
+                id: image
+                height: 200
+                width: 200
                 source: "images/autoclave.webp"
             }
         }
 
-
-        ListView {
-            id: sensors
-            width: 200
-            height: contentHeight
+        Column {
+            id: sensorsColunn
             y: 10
+            width: (smartItem.width - image.width) / 2 - 2*spacing
             spacing: 20
 
-            model: modelData.sensorList
+            ListView {
+                id: sensors
+                width: parent.width
+                height: contentHeight
+                spacing: 20
 
-            delegate: Loader {
-                source: modelData.type === "ds18b20" ? "sensors/Ds18b20Sensor.qml" :
-                        modelData.type === "discrete" ? "sensors/DiscreteSensor.qml" :
-                        "sensors/DiscreteSensor.qml"
+                model: modelData.sensorList
+
+                delegate: Loader {
+                    width: parent.width
+                    source: modelData.type === "ds18b20" ?
+                                "components/sensors/Ds18b20Sensor.qml" :
+                                modelData.type === "discrete" ?
+                                    "components/sensors/DiscreteSensor.qml" :
+                                    "components/sensors/MySensor.qml"
+                }
+            }
+
+            MyButton {
+                text: "Добавить сенсор"
+                mouseArea.onClicked: modelData.addSensor()
             }
         }
 
-        ListView {
-            id: actuators
-            width: 250
-            height: contentHeight
+        Column {
+            id: actuatorsColunn
             y: 10
+            width: (smartItem.width - image.width) / 2 - 2*spacing
             spacing: 20
-            model : modelData.actuatorList
-            delegate : Actuator {}
+
+            ListView {
+                id: actuators
+                width: parent.width
+                height: contentHeight
+                y: 10
+                spacing: 20
+                model : modelData.actuatorList
+                delegate : Actuator {}
+            }
+
+            MyButton {
+                text: "Добавить актуатор"
+                mouseArea.onClicked: modelData.addActuator()
+            }
         }
     }
+
+    MyCloseButton {}
 }
 

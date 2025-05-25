@@ -1,49 +1,41 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "components"
 
 Rectangle {
-    height: 150
-    width: 250
+    height: 200
+    width: 300
     radius: 10
     color: "#808080"
+
     Column {
+        id: regolumn
+        x: 20
+        y: 10
         anchors.fill: parent
+        width: parent.width
         spacing: 10
 
-        Item {
-            width: parent.width
-            height: 40
-
-            Row{
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - 100
-                anchors.left: parent.left
-                Text {
-                    text: "Цель: "
-                }
-
-                IntInput {
-
-                }
-            }
+        MyTextInput {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.target
+            infoText: "Цель:"
+            onTextChanged: modelData.target = text
         }
 
-        Item {
-            width: parent.width
-            height: 40
+        MyTextInput {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.hysteresis
+            infoText: "Гистерезис:"
+            onTextChanged: modelData.hysteresis = text
+        }
 
-            Row{
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - 100
-                anchors.left: parent.left
-                Text {
-                    text: "Гистерезис: "
-                }
-                IntInput {
 
-                }
-
-            }
+        MyTextInput {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.sensorName
+            infoText: "Сенсор:"
+            onTextChanged: modelData.sensorName = text
         }
 
         Item {
@@ -59,9 +51,11 @@ Rectangle {
             Switch {
                 id: toggle
                 anchors.right: parent.right
-                checked: false
+                checked: modelData.invert
             }
         }
-    }
+    } 
+
+    MyCloseButton {}
 }
 

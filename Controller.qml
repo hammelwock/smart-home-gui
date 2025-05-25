@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import "components"
 
 
 Rectangle {
@@ -11,16 +12,29 @@ Rectangle {
         id: rightColumn
         x: 20
         y: 20
+        width: 200
         spacing: 20
-        Text {
+
+        MyTextInput {
             id: name
             anchors.horizontalCenter: parent.horizontalCenter
             text: modelData.name
+            infoText: "Имя:"
+            onTextChanged: modelData.name = text
         }
+
+        MyTextInput {
+            id: type
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.type
+            infoText: "Тип:"
+            onTextChanged: modelData.type = text
+        }
+
 
         Image {
             id: controllerImg
-            width: 200
+            width: parent.width
             fillMode: Image.PreserveAspectFit
             source: "images/" + modelData.type + ".png"
         }
@@ -32,16 +46,22 @@ Rectangle {
         anchors.left: rightColumn.right
         anchors.leftMargin: 20
         y: 20
-        width: parent.width
+        width: parent.width - controllerImg.width - 3*spacing
         spacing: 20
 
         ListView {
             id: smartItems
-            width: parent.width - controllerImg.width
+            width: parent.width
             height: contentHeight
             spacing: 20
             model : modelData.smartItemList
             delegate : SmartItem {}
+            interactive: false
+        }
+
+        MyButton {
+            text: "Добавить"
+            mouseArea.onClicked: modelData.addSmartItem()
         }
     }
 }

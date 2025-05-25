@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("home", home);
 
+    qmlRegisterUncreatableType<Regulator>("MyApp", 1, 0, "Regulator", "Available as property only");
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(
                 &engine,

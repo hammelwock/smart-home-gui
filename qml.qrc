@@ -11,10 +11,14 @@
         <file>PlusMinus.qml</file>
         <file>SliderCheckbox.qml</file>
         <file>IntInput.qml</file>
-        <file>sensors/DiscreteSensor.qml</file>
-        <file>sensors/Ds18b20Sensor.qml</file>
         <file>images/arduinoMega.png</file>
         <file>images/arduinoNano.png</file>
         <file>images/arduinoUno.png</file>
+        <file>components/MyTextInput.qml</file>
+        <file>components/sensors/DiscreteSensor.qml</file>
+        <file>components/sensors/Ds18b20Sensor.qml</file>
+        <file>components/MyCloseButton.qml</file>
+        <file>components/sensors/MySensor.qml</file>
+        <file>components/MyButton.qml</file>
     </qresource>
 </RCC>

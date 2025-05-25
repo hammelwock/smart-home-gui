@@ -28,3 +28,5 @@ HEADERS += \
     Com.h \
     Core.h \
     SmartItems.h
+
+DISTFILES +=
