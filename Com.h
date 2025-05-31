@@ -19,7 +19,7 @@ class ComPortAdapter : public QObject
 {
     Q_OBJECT
 public:
-    ComPortAdapter(QString port, QString file);
+    ComPortAdapter(QString port);
     QJsonObject readConfig();
     void saveConfig(QJsonObject json);
     void sendJson(QJsonObject json);
@@ -39,7 +39,7 @@ private:
     QList<QJsonDocument*> sendStack;
     QTimer* timer;
 
-    QString fileJ;
+    QString port;
 };
 
 

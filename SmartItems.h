@@ -64,23 +64,27 @@ private:
 };
 
 
-class Regulator : public QObject
-{
+class Regulator : public QObject {
     Q_OBJECT
     Q_PROPERTY(int target READ getTarget WRITE setTarget NOTIFY paramChanged)
-    Q_PROPERTY(int hysteresis READ getHysteresis WRITE setHysteresis NOTIFY paramChanged)
+    Q_PROPERTY(double kp READ getKp WRITE setKp NOTIFY paramChanged)
+    Q_PROPERTY(double ki READ getKi WRITE setKi NOTIFY paramChanged)
+    Q_PROPERTY(double kd READ getKd WRITE setKd NOTIFY paramChanged)
     Q_PROPERTY(bool invert READ getInvert WRITE setInvert NOTIFY paramChanged)
     Q_PROPERTY(QString sensorName READ getSensorName WRITE setSensorName NOTIFY paramChanged)
 
-
 public:
-    Regulator(const QJsonObject &json);
     Regulator();
+    Regulator(const QJsonObject &json);
 
-    int getTarget(){return target;}
-    void setTarget(int target);
-    int getHysteresis() const { return hysteresis; }
-    void setHysteresis(int h);
+    int getTarget() const { return target; }
+    void setTarget(int t);
+    double getKp() const { return kp; }
+    void setKp(double v);
+    double getKi() const { return ki; }
+    void setKi(double v);
+    double getKd() const { return kd; }
+    void setKd(double v);
     bool getInvert() const { return invert; }
     void setInvert(bool i);
     QString getSensorName() const { return sensorName; }
@@ -90,7 +94,7 @@ public:
 
 signals:
     void paramChanged();
-    void adjusted(bool value);
+    void adjusted(double value);
 
 private slots:
     void regulate();
@@ -98,11 +102,14 @@ private slots:
 
 private:
     int target;
-    int hysteresis;
-    bool state;
+    double kp, ki, kd;
     bool invert;
+    double integral;
+    double prevError;
+    QElapsedTimer timer;
     QString sensorName;
-    Sensor* sensor;
+    Sensor* sensor = nullptr;
+    QMetaObject::Connection sensorConnection;
 };
 
 

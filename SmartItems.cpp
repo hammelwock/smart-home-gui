@@ -158,46 +158,57 @@ void Sensor::readValue(int pin, double value, QString type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-Regulator::Regulator(const QJsonObject &json)
-{
-    target = json["target"].toInt();
-    hysteresis = json["hysteresis"].toInt();
-    invert = json["invert"].toBool();
-    sensorName = json["sensorName"].toString();
-
-    connect(allElements, &AllElements::sensorListChanged, this, &Regulator::setSensor);
-    setSensor();
-}
-
-
-Regulator::Regulator()
-{
+Regulator::Regulator() {
     target = 0;
-    hysteresis = 0;
+    kp = ki = kd = 0.0;
     invert = false;
-    sensorName = "сенсор";
+    integral = 0.0;
+    prevError = 0.0;
+    connect(allElements, &AllElements::sensorListChanged, this, &Regulator::setSensor);
+    setSensor();
+}
+
+Regulator::Regulator(const QJsonObject &json) {
+    target = json["target"].toInt();
+    kp = json["kp"].toDouble();
+    ki = json["ki"].toDouble();
+    kd = json["kd"].toDouble();
+    invert =  json["invert"].toDouble();
+    sensorName = json["sensorName"].toString();
+    integral = 0.0;
+    prevError = 0.0;
 
     connect(allElements, &AllElements::sensorListChanged, this, &Regulator::setSensor);
     setSensor();
 }
 
-
-void Regulator::setTarget(int target)
-{
-    if (this->target != target)
-    {
-        this->target = target;
+void Regulator::setTarget(int t) {
+    if (target != t) {
+        target = t;
         emit paramChanged();
     }
 }
 
-
-void Regulator::setHysteresis(int h) {
-    if (hysteresis == h) return;
-    hysteresis = h;
-    emit paramChanged();
+void Regulator::setKp(double v) {
+    if (kp != v) {
+        kp = v;
+        emit paramChanged();
+    }
 }
 
+void Regulator::setKi(double v) {
+    if (ki != v) {
+        ki = v;
+        emit paramChanged();
+    }
+}
+
+void Regulator::setKd(double v) {
+    if (kd != v) {
+        kd = v;
+        emit paramChanged();
+    }
+}
 
 void Regulator::setInvert(bool i) {
     if (invert == i) return;
@@ -207,43 +218,48 @@ void Regulator::setInvert(bool i) {
 
 
 void Regulator::setSensorName(const QString &name) {
-    if (sensorName == name) return;
-    sensorName = name;
-    emit paramChanged();
+    if (sensorName != name) {
+        sensorName = name;
+        emit paramChanged();
+        setSensor();
+    }
 }
 
+void Regulator::setSensor() {
+    disconnect(sensorConnection);
 
-void Regulator::regulate()
-{
-    if (state)
-        state = target - hysteresis / 2 > sensor->getValue();
-    else
-        state = target + hysteresis / 2 > sensor->getValue();
-
-    if(invert)
-        state = !state;
-
-    emit adjusted(state);
-}
-
-
-void Regulator::setSensor()
-{
     sensor = allElements->getSensor(sensorName);
-    connect(sensor, &Sensor::valueChanged, this, &Regulator::regulate);
+    if (sensor)
+        sensorConnection = connect(sensor, &Sensor::valueChanged, this, &Regulator::regulate);
 }
 
+void Regulator::regulate() {
+    if (!sensor) return;
 
-QJsonObject Regulator::saveJson()
-{
+    double dt = timer.elapsed() / 1000;
+    timer.restart();
+
+    double measured = sensor->getValue();
+    double error = target - measured;
+    integral += error * dt;
+    double derivative = (error - prevError) / dt;
+    prevError = error;
+
+    bool result = (kp * error + ki * integral + kd * derivative) > 0;
+    qDebug() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << (kp * error + ki * integral + kd * derivative);
+    bool output = invert ? !result : result;
+
+    emit adjusted(output);
+}
+
+QJsonObject Regulator::saveJson() {
     QJsonObject obj;
-
     obj["target"] = target;
-    obj["hysteresis"] = hysteresis;
-    obj["state"] = state;
+    obj["kp"] = kp;
+    obj["ki"] = ki;
+    obj["kd"] = kd;
     obj["invert"] = invert;
     obj["sensorName"] = sensorName;
-
     return obj;
 }
 
@@ -261,12 +277,15 @@ Actuator::Actuator(const QJsonObject &json, ComPortAdapter *comPortAdapter)
     onPinChanged();
 
     if (json.contains("regulator"))
+    {
         regulator = new Regulator(json["regulator"].toObject());
+        connect(regulator, &Regulator::adjusted, this, &Actuator::setValue);
+        connect(regulator, &Regulator::paramChanged, this, &Actuator::regulatorChanged);
+    }
     else
         regulator = 0;
 
     connect(this, &Actuator::valueChanged, this, &Actuator::sendValue);
-    //connect(regulator, &Regulator::adjusted, this, &Actuator::setValue);//to do
 }
 
 
@@ -283,7 +302,6 @@ Actuator::Actuator(ComPortAdapter *comPortAdapter)
     onPinChanged();
 
     connect(this, &Actuator::valueChanged, this, &Actuator::sendValue);
-    //connect(regulator, &Regulator::adjusted, this, &Actuator::setValue);//to do
 }
 
 Actuator::~Actuator()
@@ -346,6 +364,9 @@ void Actuator::addRegulator()
         delete regulator;
 
     regulator = new Regulator();
+    connect(regulator, &Regulator::adjusted, this, &Actuator::setValue);
+    connect(regulator, &Regulator::paramChanged, this, &Actuator::regulatorChanged);
+
     emit regulatorChanged();
 }
 

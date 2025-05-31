@@ -3,13 +3,13 @@ import QtQuick.Controls 2.15
 import "components"
 
 Rectangle {
-    height: 200
+    height: 300
     width: 300
     radius: 10
     color: "#808080"
 
     Column {
-        id: regolumn
+        id: regColumn
         x: 20
         y: 10
         anchors.fill: parent
@@ -18,24 +18,37 @@ Rectangle {
 
         MyTextInput {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: modelData.target
+            text: modelData.regulator.target
             infoText: "Цель:"
-            onTextChanged: modelData.target = text
+            onTextChanged: modelData.regulator.target = text
         }
 
         MyTextInput {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: modelData.hysteresis
-            infoText: "Гистерезис:"
-            onTextChanged: modelData.hysteresis = text
+            text: modelData.regulator.kp
+            infoText: "П:"
+            onTextChanged: modelData.regulator.kp = text
         }
-
 
         MyTextInput {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: modelData.sensorName
+            text: modelData.regulator.ki
+            infoText: "И:"
+            onTextChanged: modelData.regulator.ki = text
+        }
+
+        MyTextInput {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.regulator.kd
+            infoText: "Д:"
+            onTextChanged: modelData.regulator.kd = text
+        }
+
+        MyTextInput {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: modelData.regulator.sensorName
             infoText: "Сенсор:"
-            onTextChanged: modelData.sensorName = text
+            onTextChanged: modelData.regulator.sensorName = text
         }
 
         Item {
@@ -51,7 +64,8 @@ Rectangle {
             Switch {
                 id: toggle
                 anchors.right: parent.right
-                checked: modelData.invert
+                checked: modelData.regulator.invert
+                onCheckedChanged: modelData.regulator.invert = checked
             }
         }
     } 

@@ -57,7 +57,7 @@ Rectangle {
             id: pin
             text: modelData.pin
             infoText: "Пин:"
-            onTextChanged: modelData.зшт = text
+            onTextChanged: modelData.pin = text
         }
 
         MyButton {

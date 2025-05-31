@@ -1,6 +1,7 @@
 #include "Core.h"
 
 AllElements* allElements;
+Home* home;
 
 Sensor *AllElements::getSensor(QString sensorName)
 {

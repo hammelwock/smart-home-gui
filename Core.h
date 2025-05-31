@@ -26,5 +26,6 @@ private:
 };
 
 extern AllElements* allElements;
+extern Home* home;
 
 #endif // CORE_H

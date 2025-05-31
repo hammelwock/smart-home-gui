@@ -20,5 +20,6 @@
         <file>components/MyCloseButton.qml</file>
         <file>components/sensors/MySensor.qml</file>
         <file>components/MyButton.qml</file>
+        <file>components/sensors/AnalogSensor.qml</file>
     </qresource>
 </RCC>

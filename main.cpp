@@ -15,16 +15,24 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     allElements = new AllElements();
+    home = new Home();
+    QList<ComPortAdapter*> comPortAdapterList;
 
-    ComPortAdapter *comPortAdapter = new ComPortAdapter("ttyUSB0", "config.json");
-    ComPortAdapter *comPortAdapter2 = new ComPortAdapter("ttyACM0", "config1.json");
+    QFile file("ports");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&file);
+        while (!in.atEnd())
+        {
+           QString line = in.readLine();
+           comPortAdapterList.append(new ComPortAdapter(line));
+        }
+        file.close();
+    }
+    //ComPortAdapter *comPortAdapter = new ComPortAdapter("ttyUSB5", "config.json");
+    ComPortAdapter *comPortAdapter2 = new ComPortAdapter("ttyACM0");
 
-    Home *home = new Home();
-
-    home->addController(new Controller(comPortAdapter2->readConfig(), comPortAdapter2));
-    home->addController(new Controller(comPortAdapter->readConfig(), comPortAdapter));
-
-    qobject_cast<Controller*>(home->getControllerList().at(0))->saveJson();
+//    qobject_cast<Controller*>(home->getControllerList().at(0))->saveJson();
 
     engine.rootContext()->setContextProperty("home", home);
 

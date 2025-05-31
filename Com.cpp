@@ -1,8 +1,9 @@
 #include "Com.h"
+#include "Core.h"
 
-ComPortAdapter::ComPortAdapter(QString port, QString file)
+ComPortAdapter::ComPortAdapter(QString port)
 {
-    fileJ = file;
+    this->port = port;
     serial.setPortName(port);
     serial.setBaudRate(QSerialPort::Baud115200);
     serial.setDataBits(QSerialPort::Data8);
@@ -13,14 +14,16 @@ ComPortAdapter::ComPortAdapter(QString port, QString file)
     QIODevice::connect(&serial, &QSerialPort::readyRead, this, &ComPortAdapter::readData);
 
     if (serial.open(QIODevice::ReadWrite))
+    {
         qDebug() << "Serial port opened.";
+
+        timer = new QTimer(this);
+        connect(timer, &QTimer::timeout, this, &ComPortAdapter::sendJsonToCom);
+        timer->start(1000);
+        home->addController(new Controller(readConfig(), this));
+    }
     else
         qDebug() << "Error opening port:" << serial.errorString();
-
-
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &ComPortAdapter::sendJsonToCom);
-    timer->start(500);
 }
 
 
@@ -101,7 +104,7 @@ void ComPortAdapter::jsonRecd(QJsonDocument *json)
 
 QJsonObject ComPortAdapter::readConfig()
 {
-    QFile file(fileJ);
+    QFile file("config_" + port + ".json");
     QByteArray data;
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         data = file.readAll();
@@ -115,13 +118,19 @@ QJsonObject ComPortAdapter::readConfig()
     return jsonDoc.object();
 }
 
-void ComPortAdapter::saveConfig(QJsonObject json)
+void ComPortAdapter::saveConfig(QJsonObject config)
 {
-    QJsonDocument jsonDoc(json);
+//    QJsonObject obj;
+//    obj["cmd"] = "saveConfig";
+//    obj["config"] = config;
+
+//    sendJson(obj);
+
+    QJsonDocument jsonDoc(config);
 
     QString jsonString = jsonDoc.toJson(QJsonDocument::Indented);
 
-    QFile file(fileJ);
+    QFile file("config_" + port + ".json");
     if (file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         file.write(jsonString.toUtf8());

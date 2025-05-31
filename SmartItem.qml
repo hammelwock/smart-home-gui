@@ -53,7 +53,9 @@ Rectangle {
                                 "components/sensors/Ds18b20Sensor.qml" :
                                 modelData.type === "discrete" ?
                                     "components/sensors/DiscreteSensor.qml" :
-                                    "components/sensors/MySensor.qml"
+                                    modelData.type === "analog" ?
+                                        "components/sensors/AnalogSensor.qml" :
+                                        "components/sensors/MySensor.qml"
                 }
             }
 

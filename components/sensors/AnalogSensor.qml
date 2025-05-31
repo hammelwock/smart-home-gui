@@ -15,12 +15,29 @@ MySensor {
 
         Rectangle {
             width: parent.width - 4
-            height: parent.height - 4
+            height: parent.height / 1023 * modelData.value - 4
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
             radius: 10
-            color: modelData.value ? "#00ea13" : "#002f03"
+            color: "#00ea13"
+        }
+
+        Column {
+            height: parent.height
+            width: parent.width
+
+            spacing: height / 16 - 2
+
+            Repeater{
+                model: 16
+
+                Rectangle {
+                    height: 2
+                    width: parent.width
+                    color: index != 0 ? "black" : "transparent"
+                }
+            }
         }
     }
 }
