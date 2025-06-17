@@ -52,6 +52,7 @@ private slots:
     void onPinChanged();
     void refreshValue();
     void readValue(int pin, double value, QString type);
+    void appendLogLine(double value);
 
 private:
     QString name;

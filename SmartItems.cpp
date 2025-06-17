@@ -152,7 +152,21 @@ void Sensor::readValue(int pin, double value, QString type)
     if (pin == this->pin && type == this->type)
     {
         this->value = value;
+        appendLogLine(value);
         emit valueChanged();
+    }
+}
+
+
+void Sensor::appendLogLine(double value)
+{
+    QFile file("log/" + name);
+    if (file.open(QIODevice::Append | QIODevice::Text)) {
+        QTextStream out(&file);
+        int seconds = allElements->uptimeTimer.elapsed() / 1000.0;
+
+        out << seconds << " - " << value << "\n";
+        file.close();
     }
 }
 

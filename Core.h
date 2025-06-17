@@ -11,9 +11,11 @@ class AllElements : public QObject
     //Q_PROPERTY(QList<QObject*> sensorList READ readSensorList() NOTIFY sensorListChanged())
 
 public:
-    AllElements(){}
+    AllElements(){ uptimeTimer.start(); }
     Sensor* getSensor(QString sensorName);
     void addSensor(Sensor* sensor);
+
+    QElapsedTimer uptimeTimer;
 
 signals:
     void sensorListChanged();
